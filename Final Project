@@ -16,7 +16,7 @@ PARAMETERS
 #SBATCH --mem 248G
 
 module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
+# conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test **change to your conda**
 #######################
 
 # Make script to download files
