@@ -1,18 +1,27 @@
-test edit
-# Make script to download files
-
-module load nano 
-
-nano download_fastq.sh
-
+#######################
+VARIABLES: **change to path on your computer**
+#######################
+chrom_list=
+coord_list=
+reference_genome=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
+final_project_bamlist.text
+#######################
+PARAMETERS
+#######################
 #!/bin/bash
 #SBATCH --account=c01988
-#SBATCH --time=24:00:00
-#SBATCH --job-name=download_fastq
+#SBATCH --time=96:00:00
+#SBATCH --job-name=final_proj
+#SBATCH --cpus-per-task=8
+#SBATCH --mem 248G
 
-set -euo pipefail
+module load conda
+conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
+#######################
 
-cd /N/scratch/cgmorale/Digital_biology/Final_Project/Re_Run
+# Make script to download files
+
+cd /N/scratch/cgmorale/Digital_biology/Final_Project
 
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR725/002/ERR7250162/ERR7250162_1.fastq.gz
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR725/002/ERR7250162/ERR7250162_2.fastq.gz
@@ -40,18 +49,7 @@ wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/007/ERR7132597/ERR7132597_2.f
 
 echo “done”
 
-# Re_Run slurm 6733325, 597 failed, rerunning 6735952
-
-# Make script to gunzip files
-
-nano gunzip_fastq.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=12:00:00
-#SBATCH --job-name=gunzip_fastq
-
-set -euo pipefail
+# Gunzip files
 
 cd /N/scratch/cgmorale/Digital_biology/Final_Project
 
@@ -62,115 +60,54 @@ done
 
 echo "done"
 
-gunzip ERR7250162_1.fastq.gz
-gunzip ERR7250162_2.fastq.gz
-gunzip ERR7421167_1.fastq.gz
-gunzip ERR7421167_2.fastq.gz
-gunzip ERR7133674_1.fastq.gz
-gunzip ERR7133674_2.fastq.gz
-gunzip ERR7167919_1.fastq.gz
-gunzip ERR7167919_2.fastq.gz
-gunzip ERR7198583_1.fastq.gz
-gunzip ERR7198583_2.fastq.gz
-gunzip ERR7167928_1.fastq.gz
-gunzip ERR7167928_2.fastq.gz
-gunzip ERR7133682_1.fastq.gz
-gunzip ERR7133682_2.fastq.gz
-gunzip ERR7134862_1.fastq.gz
-gunzip ERR7134862_2.fastq.gz
-gunzip ERR7132597_1.fastq.gz
-gunzip ERR7132597_2.fastq.gz
-gunzip ERR7133676_1.fastq.gz
-gunzip ERR7133676_2.fastq.gz
 
-echo “done”
-## rerun slurm 6743554
 # Check size of resulting FASTQ files
 
 ls -thor *.fastq
--rw-r--r-- 1 cgmorale  74G Mar 20 20:22 ERR7421167_1.fastq
--rw-r--r-- 1 cgmorale  74G Mar 20 20:30 ERR7421167_2.fastq
--rw-r--r-- 1 cgmorale  39G Mar 23 16:57 ERR7250162_2.fastq
--rw-r--r-- 1 cgmorale  39G Mar 23 18:20 ERR7250162_1.fastq
--rw-r--r-- 1 cgmorale 110G Mar 23 22:17 ERR7133674_2.fastq
--rw-r--r-- 1 cgmorale  24G Mar 23 22:24 ERR7167919_2.fastq
--rw-r--r-- 1 cgmorale  24G Mar 23 22:34 ERR7167919_1.fastq
--rw-r--r-- 1 cgmorale  24G Mar 23 22:43 ERR7198583_2.fastq
--rw-r--r-- 1 cgmorale  24G Mar 23 23:00 ERR7198583_1.fastq
--rw-r--r-- 1 cgmorale  74G Mar 24 00:52 ERR7167928_2.fastq
--rw-r--r-- 1 cgmorale  26G Mar 24 02:25 ERR7133682_1.fastq
--rw-r--r-- 1 cgmorale  26G Mar 24 03:03 ERR7133682_2.fastq
--rw-r--r-- 1 cgmorale  74G Mar 24 04:14 ERR7134862_2.fastq
--rw-r--r-- 1 cgmorale  74G Mar 24 04:55 ERR7134862_1.fastq
--rw-r--r-- 1 cgmorale  24G Mar 24 05:09 ERR7132597_1.fastq
--rw-r--r-- 1 cgmorale  74G Mar 25 17:58 ERR7167928_1.fastq
--rw------- 1 cgmorale  22G Mar 25 18:05 ERR7132597_2.fastq
--rw-r--r-- 1 cgmorale 110G Mar 25 18:10 ERR7133674_1.fastq
--rw-r--r-- 1 cgmorale  68G Mar 25 18:22 ERR7133676_1.fastq
--rw-r--r-- 1 cgmorale  68G Mar 25 21:17 ERR7133676_2.fastq
-
 
 # Check how many lines are in each FASTQ file
 
 nano count_lines.sh
 
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=04:00:00
-#SBATCH --job-name=count_lines
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
 wc -l *.fastq
 
-echo "done"
-
-    310992960 ERR7132597_1.fastq
-    310992960 ERR7132597_2.fastq
-   1275691224 ERR7133674_1.fastq
-   1275691224 ERR7133674_2.fastq
-    799177184 ERR7133676_1.fastq
-    799177184 ERR7133676_2.fastq
-    340728960 ERR7133682_1.fastq
-    340728960 ERR7133682_2.fastq
-    861265116 ERR7134862_1.fastq
-    861265116 ERR7134862_2.fastq
-    309972148 ERR7167919_1.fastq
-    309972148 ERR7167919_2.fastq
-    856964644 ERR7167928_1.fastq
-    856964644 ERR7167928_2.fastq
-    310417756 ERR7198583_1.fastq
-    310417756 ERR7198583_2.fastq
-    522898220 ERR7250162_1.fastq
-    522898220 ERR7250162_2.fastq
-    857226968 ERR7421167_1.fastq
-    857226968 ERR7421167_2.fastq
+# 310992960 ERR7132597_1.fastq
+# 310992960 ERR7132597_2.fastq
+# 1275691224 ERR7133674_1.fastq
+# 1275691224 ERR7133674_2.fastq
+# 799177184 ERR7133676_1.fastq
+# 799177184 ERR7133676_2.fastq
+# 340728960 ERR7133682_1.fastq
+# 340728960 ERR7133682_2.fastq
+# 861265116 ERR7134862_1.fastq
+# 861265116 ERR7134862_2.fastq
+# 309972148 ERR7167919_1.fastq
+# 309972148 ERR7167919_2.fastq
+# 856964644 ERR7167928_1.fastq
+# 856964644 ERR7167928_2.fastq
+# 310417756 ERR7198583_1.fastq
+# 310417756 ERR7198583_2.fastq
+# 522898220 ERR7250162_1.fastq
+# 522898220 ERR7250162_2.fastq
+# 857226968 ERR7421167_1.fastq
+# 857226968 ERR7421167_2.fastq
 
 # Calculate number of reads in each FASTQ file
 
 ## divide all read numbers by 4
 
-ERR7132597 77748240
-ERR7133674 318922806
-ERR7133676 199794296
-ERR7133682 85182240
-ERR7134862 215316279
-ERR7167919 77493037
-ERR7167928 214241161
-ERR7198583 77604439
-ERR7250162 130724555
-ERR7421167 214306742
+# ERR7132597 77748240
+# ERR7133674 318922806
+# ERR7133676 199794296
+# ERR7133682 85182240
+# ERR7134862 215316279
+# ERR7167919 77493037
+# ERR7167928 214241161
+# ERR7198583 77604439
+# ERR7250162 130724555
+# ERR7421167 214306742
 
 # Check how long each read is in one of the files
-
-nano calculate_read_length.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=10:00:00
-#SBATCH --job-name=readlength
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
 
 module load conda
 conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
@@ -181,33 +118,27 @@ for f in *_1.fastq; do
     #tr -d 'n/' removes the new line at the end of the sequence
 done
 
-echo "Finished at $(date)"
-
-slurm 6721698
-
 # Results:
 
-Counting read length of ERR7132597_1.fastq
-126
-Counting read length of ERR7133674_1.fastq
-151
-Counting read length of ERR7133676_1.fastq
-151
-Counting read length of ERR7133682_1.fastq
-126
-Counting read length of ERR7134862_1.fastq
-151
-Counting read length of ERR7167919_1.fastq
-126
-Counting read length of ERR7167928_1.fastq
-151
-Counting read length of ERR7198583_1.fastq
-126
-Counting read length of ERR7250162_1.fastq
-126
-Counting read length of ERR7421167_1.fastq
-151
-Finished at Wed Apr  1 09:51:56 AM EDT 2026
+#Counting read length of ERR7132597_1.fastq
+#126
+#Counting read length of ERR7133674_1.fastq
+#51
+#Counting read length of ERR7133682_1.fastq
+#126
+#Counting read length of ERR7134862_1.fastq
+#151
+#Counting read length of ERR7167919_1.fastq
+#126
+#Counting read length of ERR7167928_1.fastq
+#151
+#Counting read length of ERR7198583_1.fastq
+#126
+#Counting read length of ERR7250162_1.fastq
+#126
+#Counting read length of ERR7421167_1.fastq
+#151
+#Finished at Wed Apr  1 09:51:56 AM EDT 2026
 
 # Calculate the sequencing coverage
 
@@ -215,27 +146,13 @@ Finished at Wed Apr  1 09:51:56 AM EDT 2026
 ## total number of bases = read length x # reads x 2
 
 ls -thor lynx_ref.fna
-2.3G
+#2.3G
 
 grep -v ">" lynx_ref.fna | tr -d '\n' | wc -c
-2407810255
+#2407810255
 
 
 # Evaluate quality
-
-nano fastqc.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=10:00:00
-#SBATCH --job-name=fastqc
-
-set -eo pipefail
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
 
 mkdir -p fastqc_results
 
@@ -249,8 +166,6 @@ done
 
 echo "Finished at $(date)"
 
-slurm 6693366
-
 # multiqc
 
 multiqc fastqc_results/
@@ -258,26 +173,11 @@ multiqc fastqc_results/
 # SCP the resulting files to my computer
 ## run on a node on my computer
 
-scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/fastqc_results/*fastqc.html' .
+#scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/fastqc_results/*fastqc.html' .
 
-scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_report.html' .
-
-### some fastqcs weren't created due to time limit on script
+#scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_report.html' .
 
 # Trim
-
-nano trim_fastqs.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=10:00:00
-#SBATCH --cpus-per-task=8
-#SBATCH --job-name=trimfastqs
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
 
 for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
 do echo "Trimming $acc" 
@@ -290,24 +190,6 @@ fast p \
     echo "Finished $acc"
 done
 
-
-for f in *_1.fastq; do
-    base=$(basename "$f" _1.fastq)
-    echo "Trimming ${base}"
-    fastp \
-        --in1 "${base}_1.fastq" \
-        --in2 "${base}_2.fastq" \
-        --out1 "${base}_1_trimmed.fastq" \
-        --out2 "${base}_2_trimmed.fastq" \
-        --thread 8
-    echo "Finished ${base}"
-done
-
-echo "done at $(date)"
-
-slurm 6721265
-NEW slurm 6729517
-
 # Re-evaluate FASTQCs 
 mkdir trimmed_fastqs
 
@@ -315,33 +197,6 @@ mv *trimmed.fastq trimmed_fastqs/
 cd trimmed_fastqs
 
 mkdir trimmed_fastqc_results
-
-nano trimmed_fastqc_script.sh
-
-# put this in the script
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=10:00:00
-#SBATCH --cpus-per-task=8
-#SBATCH --job-name=trimfastqcs
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project/trimmed_fastqs
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
-
-for f in trimmed_fastqs/*_1_trimmed.fastq; do
-    base=$(basename "$f" _1_trimmed.fastq)
-
-    fastqc \
-        trimmed_fastqs/${base}_1_trimmed.fastq \
-        trimmed_fastqs/${base}_2_trimmed.fastq \
-        -o trimmed_fastqc_results
-done
-
-6721647
-# next step - still trimming, check it, then multiqc and scp results
 
 for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
 do
@@ -351,30 +206,28 @@ do
         -o trimmed_fastqc_results
 done
 
-NEW slurm 6729743
-
 multiqc trimmed_fastqc_results/
 
-scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_report.html' .
+#scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_report.html' .
 
 # Assignment 6 Steps
 
 # Obtain reference genome
 ## run this on terminal for computer, not ssh
 
-scp /Users/camillemorales/Bioinformatics/ncbi_dataset.zip cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/                         
+# scp /Users/camillemorales/Bioinformatics/ncbi_dataset.zip cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/                         
 
 # Unzip it
 
-mkdir reference_genome
+#mkdir reference_genome
 
-mv ncbi_dataset.zip reference_genome
+#mv ncbi_dataset.zip reference_genome
 
-unzip ncbi_dataset.zip
+#unzip ncbi_dataset.zip
 
-cd ncbi_dataset/data/GCF_007474595.2/
+#cd ncbi_dataset/data/GCF_007474595.2/
 
-mv GCF_007474595.2_mLynCan4.pri.v2_genomic.fna lynx_ref.fna
+#mv GCF_007474595.2_mLynCan4.pri.v2_genomic.fna lynx_ref.fna
 
 # Index the reference genome 
 
@@ -391,19 +244,10 @@ bwa index lynx_ref.fna
 # Subset
 
 ## 151 read length accessions
-nano subset_151.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=08:00:00
-#SBATCH --mem=32G
-#SBATCH --job-name=subset_fastq
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project/trimmed_fastqs
 
 mkdir -p ../subsets
 
-for acc in ERR7133674 #ERR7133676 ERR7134862 ERR7167928 ERR7421167 
+for acc in ERR7133674 ERR7133676 ERR7134862 ERR7167928 ERR7421167 
 do
     echo "subsetting $acc read one"
     seqtk sample -s12345 "${acc}_1_trimmed.fastq" 39735099 > "../subsets/${acc}_1_subset.fastq"
@@ -413,22 +257,7 @@ done
 
 echo "done at $(date)"
 
-sbatch subset_151.sh
-
-6730193
-new slurm 6733347 worked, now all 6733449
-
 ## 126 read length accessions
-
-nano subset_126.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=08:00:00
-#SBATCH --mem=32G
-#SBATCH --job-name=subset_fastq
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project/trimmed_fastqs
 
 for acc in ERR7132597 ERR7133682 ERR7167919 ERR7198583 ERR7250162 
 do
@@ -440,30 +269,11 @@ done
 
 echo "done at $(date)"
 
-sbatch subset_126.sh
-6730201
-doing one to start 6733633, now all 6733653
-
 # Align with bwa mem
-nano align.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=24:00:00
-#SBATCH --job-name=align
-#SBATCH --cpus-per-task 10 
-#SBATCH --mem 50gb
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project/subsets
 
 mkdir -p ../sam_files
 
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
-
-reference=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
-
-for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
+for acc in ERR7132597 ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
 do
     echo "Aligning $acc"
     bwa mem -t 10 "$reference" "${acc}_1_subset.fastq" "${acc}_2_subset.fastq" > "$../sam_files/{acc}.sam"
@@ -472,22 +282,9 @@ done
 
 echo "Finished at $(date)"
 
-sbatch align.sh
-
-slurm 6733915 - just one
-failed, changed -o to > 6733995, updated mkdir code, 6734003, one worked, now all 6735922
-
 # Look at a pair of reads
 
 # Use samtools to count unmapped reads and read depth
-
-nano count_unmapped_reads.sh
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=3:00:00
-#SBATCH --job-name=samcount
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project/sam_files
 
 for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
     do
@@ -500,28 +297,12 @@ done
 
 echo "Finished at $(date)"
 
-## slurm 6742954
-
 # Filter alignments using samtools
 
 ## move subsets into main final project folder to make easier
 cd subsets
 
 mv *subset.fastq ../
-
-nano filter.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=48:00:00
-#SBATCH --job-name=filter
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=64G
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
 
 reference=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
 
@@ -555,58 +336,36 @@ done
 
 echo "Finished at $(date)"
 
-sbatch filter.sh
-
-##slurm 6742712, killed bc didn't request memory, now 6742824 for first one, worked, now 6743552 for all, didn't finish, 6748815 for last 3
-## change script to 48 hours
-
 # look at the coverage files
-column -t ERR7167919.coverage | less -S
+# column -t ERR7167919.coverage | less -S
 
 # Count per base coverage
-samtools tview ERR7167919.markdup.bam /N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
+# samtools tview ERR7167919.markdup.bam /N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
 
 # look at where reads were
-samtools idxstats ERR7167919.markdup.bam
+# samtools idxstats ERR7167919.markdup.bam
 
-#pick an area with lots of reads: NC_044310.1:1000000
-samtools tview ERR7167919.markdup.bam reference.fna -p NC_044310.1:1000000
+#picking an area with lots of reads: NC_044310.1:1000000
+# samtools tview ERR7167919.markdup.bam reference.fna -p NC_044310.1:1000000
 
 ##Ns on reference genome
 
 ### look for area on reference genome without Ns
 
 # Call Variants
-nano final_project_bamlist.text
 ###put all bam files here
 ###move bam files out of scratch
 
-ERR7132597.markdup.bam
-ERR7133674.markdup.bam
-ERR7133676.markdup.bam
-ERR7133682.markdup.bam
-ERR7134862.markdup.bam
-ERR7167919.markdup.bam
-ERR7167928.markdup.bam
-ERR7198583.markdup.bam
-ERR7250162.markdup.bam
-ERR7421167.markdup.bam
-
-
-nano variant_call.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=72:00:00
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=20G
-
-set -euo pipefail
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
+#ERR7132597.markdup.bam
+#ERR7133674.markdup.bam
+#ERR7133676.markdup.bam
+#ERR7133682.markdup.bam
+#ERR7134862.markdup.bam
+#ERR7167919.markdup.bam
+#ERR7167928.markdup.bam
+#ERR7198583.markdup.bam
+#ERR7250162.markdup.bam
+#ERR7421167.markdup.bam
 
 reference=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
 bamlist=final_project_bamlist.text
@@ -625,8 +384,6 @@ bcftools mpileup --fasta-ref "$reference" \
 
 echo "Finished at $(date)"
 
-# slurm 6751387 - says cancelled due to time limit, renamed file to unfinished_variants.vcf and resubmitted with 72 hours 6759812
-
 # NUMBER OF VARIANTS IN OUPUT VCF FILE: 
 grep -v '^#' variants.vcf | wc -l
 
@@ -634,27 +391,14 @@ grep -v '^#' variants.vcf | wc -l
 # Now its 19,043,601
 
 # Interpret and Filter VCF files
-less -S variants.vcf
+#less -S variants.vcf
 
 ## Remove low quality variants
-nano filter_variants_step_1.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=48:00:00
-#SBATCH --mem=4G
-#SBATCH --job-name=filter_vcf
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
+#nano filter_variants_step_1.sh
 
 bcftools view -i 'QUAL>=30' variants.vcf -O v -o hq_variants.vcf
 
 echo "Filtering done at $(date)"
-
-### slurm 6765684
 
 # Re-count number of variants in high quality variants file
 
@@ -664,30 +408,13 @@ grep -v '^#' hq_variants.vcf | wc -l
 
 # Remove Indels
 
-nano filter_variants_step_2.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=48:00:00
-#SBATCH --mem=4G
-#SBATCH --job-name=filter_vcf
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
-
 bcftools view -v snps hq_variants.vcf -O v -o no_indels.vcf
 
 echo "Filtering done at $(date)"
 
-sbatch filter_variants_step_2.sh
-
-## slurm 6765770
-
 # Confirm no indels remain
 
-bcftools stats no_indels.vcf | less
+# bcftools stats no_indels.vcf | less
 
 # Re-count number of variants in high quality variants WITH NO indels file
 
@@ -697,26 +424,9 @@ grep -v '^#' no_indels.vcf | wc -l
 
 # Filter sites with multiple alternate alleles
 
-nano filter_variants_step_3.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=48:00:00
-#SBATCH --mem=4G
-#SBATCH --job-name=filter_vcf
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
-
 bcftools view -M2 no_indels.vcf -O v -o no_mult_alt_alleles.vcf
 
 echo "Filtering done at $(date)"
-
-sbatch filter_variants_step_3.sh
-
-# slurm 6765840
 
 # Re-count number of variants
 grep -v '^#' no_mult_alt_alleles.vcf | wc -l
@@ -725,34 +435,16 @@ grep -v '^#' no_mult_alt_alleles.vcf | wc -l
 
 # Assess Missingness
 
-## 0 may be too extreme
-
-nano filter_variants_step_4.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=48:00:00
-#SBATCH --mem=4G
-#SBATCH --job-name=filter_vcf
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
-
 bcftools view -i 'F_MISSING==0.0' no_mult_alt_alleles.vcf -O v -o no_missing_sites.vcf
 
 echo "Filtering done at $(date)"
-
-sbatch filter_variants_step_4.sh
-## slurm 6765878
 
 # Re-count number of SNPs
 grep -v '^#' no_missing_sites.vcf | wc -l
 
 ## other way to look at number of SNPs
 
-bcftools stats no_missing_sites.vcf | less
+# bcftools stats no_missing_sites.vcf | less
 
 ## now there are 5,269,823 SNPs
 
@@ -761,38 +453,15 @@ bcftools stats no_missing_sites.vcf | less
 # Filter by minor-allele frequency
 ## MAF = 1/2N
 ## MAF = 1/(2X10)
-## MAF = 0.05
-
-nano filter_variants_step_5.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --time=48:00:00
-#SBATCH --mem=4G
-#SBATCH --job-name=filter_vcf
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
+## MAF = 0.051
 
 bcftools view -i "MAF>=$0.051" no_missing_sites.vcf -O v -o MAF_filtered_snps.vcf
 
-# change to greater than and then redo?
-# or just change to 0.51
-
 echo "Filtering done at $(date)"
 
-sbatch filter_variants_step_5.sh
-
-# slurm 6767642
-
-bcftools stats MAF_filtered_snps.vcf | less
+# bcftools stats MAF_filtered_snps.vcf | less
 
 ## now there are 2,522,957 SNPs
-
-# Do I need to filter out sex chromosomes?
-## check if it's obvious which are sex chromosomes
 
 grep '^##contig' MAF_filtered_snps.vcf
 
@@ -812,11 +481,11 @@ bcftools view -R regions.txt $vcfin.gz -o no_sex_snps.vcf
 
 wget https://raw.githubusercontent.com/the-smith-lab/Digital_biology/refs/heads/main/LD/ld.py
 
-python ld.py <input_VCF>
+python ld.py no_sex_snps.vcf
 
 # SCP the plot
 
-scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/plot_name.
+# scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/plot_name.
 
 #Report (i) the approximate inter-SNP distance where the correlation begins to level off, and (ii) the approximate "background 
 # " that is expected even at very large distances.
@@ -860,9 +529,6 @@ vcftools --vcf <input_VCF> \
 
 tail -n +2 fst_results.weir.fst | awk '{ total += $3 } END { print total/NR }'
 
-## MEAN FST =
-
-# don't need to do
 
 # Assignment 9 steps
 
