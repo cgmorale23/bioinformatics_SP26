@@ -1,10 +1,3 @@
-##################################################
-##VARIABLES: **change to path on your computer**##
-##################################################
-chrom_map.txt=/N/scratch/cgmorale/Digital_biology/Final_Project/chrom_map.txt
-regions.txt=/N/scratch/cgmorale/Digital_biology/Final_Project/regions.txt
-reference_genome=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
-bamlist=/N/scratch/cgmorale/Digital_biology/Final_Project/final_project_bamlist.text
 #######################
 PARAMETERS
 #######################
@@ -18,6 +11,16 @@ PARAMETERS
 module load conda
 # conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test **change to your conda**
 #######################
+
+
+##################################################
+##VARIABLES: **change to path on your computer**##
+##################################################
+
+chrom_map=/N/scratch/cgmorale/Digital_biology/Final_Project/chrom_map.txt
+regions=/N/scratch/cgmorale/Digital_biology/Final_Project/regions.txt
+reference_genome=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
+bamlist=/N/scratch/cgmorale/Digital_biology/Final_Project/final_project_bamlist.text
 
 ####################
 # DOWNLOAD FILES
@@ -40,15 +43,12 @@ wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/002/ERR7133682/ERR7133682_1.f
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/002/ERR7133682/ERR7133682_2.fastq.gz
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/002/ERR7134862/ERR7134862_1.fastq.gz
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/002/ERR7134862/ERR7134862_2.fastq.gz
-wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/007/ERR7132597/ERR7132597_1.fastq.gz
-wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/007/ERR7132597/ERR7132597_2.fastq.gz
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/006/ERR7133676/ERR7133676_1.fastq.gz
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/006/ERR7133676/ERR7133676_2.fastq.gz
-
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/007/ERR7132597/ERR7132597_1.fastq.gz
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR713/007/ERR7132597/ERR7132597_2.fastq.gz
 
-echo “done”
+echo “done downloading”
 
 # Gunzip files
 
@@ -59,7 +59,7 @@ for f in *.fastq.gz
     gunzip ${f}
 done
 
-echo "done"
+echo "done unzipping"
 
 ####################
 # CHECK FILES
@@ -67,10 +67,13 @@ echo "done"
 
 # Check size of resulting FASTQ files
 
+echo "checking size of files"
+
 ls -thor *.fastq
 
 # Check how many lines are in each FASTQ file
 
+echo "checking lines in files"
 wc -l *.fastq
 
 # 310992960 ERR7132597_1.fastq
@@ -111,11 +114,15 @@ wc -l *.fastq
 
 # Check how long each read is in one of the files
 
+echo "checking read length"
+
 for f in *_1.fastq; do
     echo "Counting read length of $f"
     head -2 "$f" | tail -1 | tr -d '\n' | wc -c
     #tr -d 'n/' removes the new line at the end of the sequence
 done
+
+echo "done checking read length"
 
 # Results:
 
@@ -144,7 +151,7 @@ done
 ## the total number of bases sequenced divided by the size of the genome
 ## total number of bases = read length x # reads x 2
 
-ls -thor lynx_ref.fna
+#ls -thor lynx_ref.fna
 #2.3G
 
 grep -v ">" lynx_ref.fna | tr -d '\n' | wc -c
@@ -168,28 +175,28 @@ echo "Finished at $(date)"
 
 # multiqc
 
-multiqc fastqc_results/
+multiqc fastqc_results/ -n multiqc_NOT_trimmed_report.html
 
 # SCP the resulting files to my computer
 ## run on a node on my computer
 
 #scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/fastqc_results/*fastqc.html' .
 
-#scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_report.html' .
+#scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_NOT_trimmed_report.html' .
 
 ####################
 # TRIM
 ####################
 
-for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
-do echo "Trimming $acc" 
-fast p \
-        --in1 "$acc_1.fastq" \
-        --in2 "$acc_2.fastq" \
-        --out1 "$acc_1_trimmed.fastq" \
-        --out2 "$acc_2_trimmed.fastq" \
+for acc in ERR7132597 ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
+do echo "Trimming ${acc}" 
+fastp \
+        --in1 "${acc}_1.fastq" \
+        --in2 "${acc}_2.fastq" \
+        --out1 "${acc}_1_trimmed.fastq" \
+        --out2 "${acc}_2_trimmed.fastq" \
         --thread 8
-    echo "Finished $acc"
+    echo "Finished ${acc}"
 done
 
 # Re-evaluate FASTQCs 
@@ -208,9 +215,11 @@ do
         -o trimmed_fastqc_results
 done
 
-multiqc trimmed_fastqc_results/
+echo "creating multiqc for trimmedfasts"
 
-#scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_report.html' .
+multiqc trimmed_fastqc_results/ -n multiqc_trimmed_report.html
+
+#scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_trimmed_report.html' .
 
 # Assignment 6 Steps
 
@@ -287,7 +296,7 @@ for acc in ERR7132597 ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR
 do
     echo "Aligning $acc"
     bwa mem -t 10 "$reference" "${acc}_1_subset.fastq" "${acc}_2_subset.fastq" > "$../sam_files/{acc}.sam"
-    echo "Finished ${base}"
+    echo "Finished ${acc}"
 done
 
 echo "Finished at $(date)"
@@ -497,7 +506,7 @@ bgzip -c $vcfin > $vcfin.gz  # compression
 
 bcftools index $vcfin.gz  # index
 
-bcftools view -R regions.txt $vcfin.gz -o no_sex_snps.vcf
+bcftools view -R "$regions" $vcfin.gz -o no_sex_snps.vcf
 
 # Visualize inter-SNP correlations
 
@@ -510,7 +519,7 @@ python ld.py no_sex_snps.vcf
 scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/ld_decay.pdf .
 
 ## rename the chromosomes in VCF
-bcftools annotate --rename-chrs chrom_map.txt no_sex_snps.vcf -o bcf_renamed.vcf
+bcftools annotate --rename-chrs "$chrom_map" no_sex_snps.vcf -o bcf_renamed.vcf
 
 # 6788351
 ## add names for each individual SNP:
@@ -524,7 +533,7 @@ plink --vcf snps_identified.vcf --make-bed --allow-extra-chr --out plinksnps
 
 #plink --bfile plinksnps \
 #      --allow-extra-chr \
-#      --indep-pairwise 10 1 0.13 \
+#      --indep-pairwise 10 1 0.23 \
 #      --out plinksnps_output
 
 ## extract keeper snps into a new file:
@@ -537,7 +546,7 @@ grep -v '^#' keeper_snps.vcf | wc -l
 #or 
 #bcftools stats keeper_snps.vcf | less
 
-### NEW NUMBER OF SNPS: 253,586
+### NEW NUMBER OF SNPS: 253,586 or 373,895
 
 #################################
 # POPULATION STRUCTURE ANALYSIS
@@ -570,33 +579,24 @@ do
   Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx $i
 done
 
-# With new Construct.R I could re-run just this for k 7-10 to get sp and nsp maps.
-## have to remove old construct.R first
-
-for i in {7..10}
-do 
-  echo "Running with value $i"
-  Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx $i
-done
-
 ###########
 # SPATIAL sp
 ###########
 
 ## scp sp files
 
-for i in {2..10}
-do 
-  echo "SCP'ing pdf of k value $i"
-  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_sp_rep1K${i}_structure.plot.chain_1.pdf .
-done
+#for i in {2..10}
+#do 
+#  echo "SCP'ing pdf of k value $i"
+#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_sp_rep1K${i}_structure.plot.chain_1.pdf .
+# done
 
 ## scp sp maps
-for i in {2..10}
-do 
-  echo "SCP'ing map of k value $i"
-  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_sp_rep1K${i}_pie.map.chain_1.pdf .
-done
+#for i in {2..10}
+#do 
+#  echo "SCP'ing map of k value $i"
+#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_sp_rep1K${i}_pie.map.chain_1.pdf .
+#done
 
 ###########
 # NONSPATIAL scp
@@ -604,22 +604,20 @@ done
 
 # scp nsp files
 
-for i in {2..10}
-do 
-  echo "SCP'ing pdf of k value $i"
-  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_nsp_rep1K${i}_structure.plot.chain_1.pdf .
-done
+#for i in {2..10}
+#do 
+#  echo "SCP'ing pdf of k value $i"
+#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_nsp_rep1K${i}_structure.plot.chain_1.pdf .
+#done
 
 ## scp nsp maps
-for i in {2..10}
-do 
-  echo "SCP'ing map of k value $i"
-  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_nsp_rep1K${i}_pie.map.chain_1.pdf .
-done
+#for i in {2..10}
+#do 
+#  echo "SCP'ing map of k value $i"
+#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_nsp_rep1K${i}_pie.map.chain_1.pdf .
+#done
 
 # Cross Validation
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
 
 module load conda
 
@@ -631,6 +629,7 @@ Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx cv
 
 echo "finished at $(date)"
 
+#DELETE BEFORE SUBMISSION
 ###############
 new step r023
 ###############
@@ -661,7 +660,7 @@ wget -O construct.R https://raw.githubusercontent.com/the-smith-lab/Digital_biol
 
 ## run construct.R for K-10
 
-echo "running construct.R for K-10
+echo "running construct.R for K-10"
 for i in {2..10}
 do 
   echo "Running with value $i"
@@ -674,6 +673,8 @@ Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx_r02
 echo "finished at $(date)"
 
 # slurm 6883819
+## didn't have locs file named right, rerun 6884498
+
 
 
 
