@@ -1,10 +1,10 @@
-#######################
-VARIABLES: **change to path on your computer**
-#######################
-chrom_list=
-coord_list=
+##################################################
+##VARIABLES: **change to path on your computer**##
+##################################################
+chrom_map.txt=/N/scratch/cgmorale/Digital_biology/Final_Project/chrom_map.txt
+regions.txt=/N/scratch/cgmorale/Digital_biology/Final_Project/regions.txt
 reference_genome=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
-final_project_bamlist.text
+bamlist=/N/scratch/cgmorale/Digital_biology/Final_Project/final_project_bamlist.text
 #######################
 PARAMETERS
 #######################
@@ -19,8 +19,9 @@ module load conda
 # conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test **change to your conda**
 #######################
 
-# Make script to download files
-
+####################
+# DOWNLOAD FILES
+####################
 cd /N/scratch/cgmorale/Digital_biology/Final_Project
 
 wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR725/002/ERR7250162/ERR7250162_1.fastq.gz
@@ -60,14 +61,15 @@ done
 
 echo "done"
 
+####################
+# CHECK FILES
+####################
 
 # Check size of resulting FASTQ files
 
 ls -thor *.fastq
 
 # Check how many lines are in each FASTQ file
-
-nano count_lines.sh
 
 wc -l *.fastq
 
@@ -109,9 +111,6 @@ wc -l *.fastq
 
 # Check how long each read is in one of the files
 
-module load conda
-conda activate /N/u/cgmorale/BigRed200/Miniconda/envs/test
-
 for f in *_1.fastq; do
     echo "Counting read length of $f"
     head -2 "$f" | tail -1 | tr -d '\n' | wc -c
@@ -151,8 +150,9 @@ ls -thor lynx_ref.fna
 grep -v ">" lynx_ref.fna | tr -d '\n' | wc -c
 #2407810255
 
-
-# Evaluate quality
+####################
+# EVALUATE QUALITY
+####################
 
 mkdir -p fastqc_results
 
@@ -177,7 +177,9 @@ multiqc fastqc_results/
 
 #scp 'cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/multiqc_report.html' .
 
-# Trim
+####################
+# TRIM
+####################
 
 for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
 do echo "Trimming $acc" 
@@ -212,6 +214,10 @@ multiqc trimmed_fastqc_results/
 
 # Assignment 6 Steps
 
+####################
+# REFERENCE GENOME
+####################
+
 # Obtain reference genome
 ## run this on terminal for computer, not ssh
 
@@ -239,9 +245,11 @@ bwa index lynx_ref.fna
 ## 6000000000 = n x length #length either = 126 or 151 in my study
 ## 6000000000 = n x 151 and 6000000000 = n x 126
 ## 6000000000 = n x 151 and 6000000000 = n x 126
-## 39735099.3377 = n and 47619047.619 = n
+## 39735099.3377 = n for 151 and 47619047.619 = n for 126
 
+####################
 # Subset
+####################
 
 ## 151 read length accessions
 
@@ -250,9 +258,9 @@ mkdir -p ../subsets
 for acc in ERR7133674 ERR7133676 ERR7134862 ERR7167928 ERR7421167 
 do
     echo "subsetting $acc read one"
-    seqtk sample -s12345 "${acc}_1_trimmed.fastq" 39735099 > "../subsets/${acc}_1_subset.fastq"
+    seqtk sample -s12345 "${acc}_1_trimmed.fastq" 47619047 > "../subsets/${acc}_1_subset.fastq"
     echo "Subsetting $acc read two"
-    seqtk sample -s12345 "${acc}_2_trimmed.fastq" 39735099 > "../subsets/${acc}_2_subset.fastq"
+    seqtk sample -s12345 "${acc}_2_trimmed.fastq" 47619047 > "../subsets/${acc}_2_subset.fastq"
 done
 
 echo "done at $(date)"
@@ -269,7 +277,9 @@ done
 
 echo "done at $(date)"
 
-# Align with bwa mem
+####################
+# Align with bwa mem 
+####################
 
 mkdir -p ../sam_files
 
@@ -284,18 +294,26 @@ echo "Finished at $(date)"
 
 # Look at a pair of reads
 
+####################
+# EVALUATE ALIGNMENT
+####################
+
 # Use samtools to count unmapped reads and read depth
 
 for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
     do
     echo "Counting Total Reads"
     samtools view -c "${acc}.sam"
-    "Counting unmapped reads in $acc"
+    echo "Counting unmapped reads in $acc"
     samtools view -c -f 4 "${acc}.sam"
     echo "Finished $acc"
 done
 
 echo "Finished at $(date)"
+
+####################
+# FILTER 
+####################
 
 # Filter alignments using samtools
 
@@ -351,6 +369,10 @@ echo "Finished at $(date)"
 ##Ns on reference genome
 
 ### look for area on reference genome without Ns
+
+####################
+# VARIANT CALLING
+####################
 
 # Call Variants
 ###put all bam files here
@@ -485,57 +507,173 @@ python ld.py no_sex_snps.vcf
 
 # SCP the plot
 
-# scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/plot_name.
-
-#Report (i) the approximate inter-SNP distance where the correlation begins to level off, and (ii) the approximate "background 
-# " that is expected even at very large distances.
-
-# Convert to PLINK Format
+scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/ld_decay.pdf .
 
 ## rename the chromosomes in VCF
-bcftools annotate --rename-chrs chrom_map.txt <input_VCF> -o <output_VCF>
+bcftools annotate --rename-chrs chrom_map.txt no_sex_snps.vcf -o bcf_renamed.vcf
 
+# 6788351
 ## add names for each individual SNP:
-bcftools annotate --set-id +'%CHROM:%POS' <input_VCF> -o <output_VCF>
+bcftools annotate --set-id +'%CHROM:%POS' bcf_renamed.vcf -o snps_identified.vcf
 
 ## convert PLNK
-plink --vcf <input_VCF> --make-bed --out <output_prefix>
+plink --vcf snps_identified.vcf --make-bed --allow-extra-chr --out plinksnps
 
+### lynx chromosomes are named unconventionally with letters. --allow-extra-chr allows for plnk to still work with them. 
 ## prune tightly linked SNPs
 
-plink --bfile <input_prefix> \
-      --indep-pairwise 10 1 $r2 \
-      --out <output_prefix>
+#plink --bfile plinksnps \
+#      --allow-extra-chr \
+#      --indep-pairwise 10 1 0.13 \
+#      --out plinksnps_output
 
 ## extract keeper snps into a new file:
-plink --vcf <input_VCF> --extract <prune.in_file> --recode vcf-iid --out <output_prefix>
+echo "extracting keeper SNPS"
+plink --vcf snps_identified.vcf --allow-extra-chr --extract plinksnps_output.prune.in --recode vcf-iid --out keeper_snps
 
-### NEW NUMBER OF SNPS: 
+## calculate remaining SNPS
+grep -v '^#' keeper_snps.vcf | wc -l
 
-# Calculate relative divergence
-nano pop1.txt
-nano pop2.txt
+#or 
+#bcftools stats keeper_snps.vcf | less
 
-# don't need to do
+### NEW NUMBER OF SNPS: 253,586
 
-#Calculate Fst per locus
-
-vcftools --vcf <input_VCF> \
-         --weir-fst-pop pop1.txt \
-         --weir-fst-pop pop2.txt \
-         --out fst_results
-
-#Average the outputs to obtain a genome wide estimate of FST
-
-tail -n +2 fst_results.weir.fst | awk '{ total += $3 } END { print total/NR }'
-
+#################################
+# POPULATION STRUCTURE ANALYSIS
+#################################
 
 # Assignment 9 steps
 
-## make a file with coordinates of samples
+## make a file with coordinates of samples, done, steps not included in this script
+## and instead path to file set at top of script
 
-# match order in VCF files, could write code to automate
+# match order in VCF files
+# bcftools query -l keeper_snps.vcf
+## tells me order they're in
 
+vcftools --vcf keeper_snps.vcf --012 --out processed_lynx
+
+wget -O construct.R https://raw.githubusercontent.com/the-smith-lab/Digital_biology/refs/heads/main/ConStruct/construct.R
+
+## run construct.R for K-10
+
+module load conda
+
+conda activate /N/scratch/chriscs/Public/Week_8/Conda/envs/Db/
+
+module load r
+
+for i in {2..10}
+do 
+  echo "Running with value $i"
+  Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx $i
+done
+
+# With new Construct.R I could re-run just this for k 7-10 to get sp and nsp maps.
+## have to remove old construct.R first
+
+for i in {7..10}
+do 
+  echo "Running with value $i"
+  Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx $i
+done
+
+###########
+# SPATIAL sp
+###########
+
+## scp sp files
+
+for i in {2..10}
+do 
+  echo "SCP'ing pdf of k value $i"
+  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_sp_rep1K${i}_structure.plot.chain_1.pdf .
+done
+
+## scp sp maps
+for i in {2..10}
+do 
+  echo "SCP'ing map of k value $i"
+  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_sp_rep1K${i}_pie.map.chain_1.pdf .
+done
+
+###########
+# NONSPATIAL scp
+###########
+
+# scp nsp files
+
+for i in {2..10}
+do 
+  echo "SCP'ing pdf of k value $i"
+  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_nsp_rep1K${i}_structure.plot.chain_1.pdf .
+done
+
+## scp nsp maps
+for i in {2..10}
+do 
+  echo "SCP'ing map of k value $i"
+  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_nsp_rep1K${i}_pie.map.chain_1.pdf .
+done
+
+# Cross Validation
+
+cd /N/scratch/cgmorale/Digital_biology/Final_Project
+
+module load conda
+
+conda activate /N/scratch/chriscs/Public/Conda_032526/envs/Db/
+
+module load r
+
+Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx cv
+
+echo "finished at $(date)"
+
+###############
+new step r023
+###############
+nano r023_plots_and_cv_rerun.sh
+
+#!/bin/bash
+#SBATCH --account=c01988
+#SBATCH --mem=64G
+#SBATCH --time=48:00:00
+#SBATCH --job-name=rerun
+
+cd /N/scratch/cgmorale/Digital_biology/Final_Project
+mkdir -p r023_structure_rerun
+cd r023_structure_rerun
+
+module load conda
+
+conda activate /N/scratch/chriscs/Public/Week_8/Conda/envs/Db/
+
+module load r
+
+echo "converting to binary format"
+
+vcftools --vcf ../keeper_snps_r023.vcf --012 --out processed_lynx_r023
+
+echo "downloading construct.R"
+wget -O construct.R https://raw.githubusercontent.com/the-smith-lab/Digital_biology/refs/heads/main/ConStruct/construct.R
+
+## run construct.R for K-10
+
+echo "running construct.R for K-10
+for i in {2..10}
+do 
+  echo "Running with value $i"
+  Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx_r023 $i
+done
+
+echo "running cross validation"
+Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx_r023 cv
+
+echo "finished at $(date)"
+
+# slurm 6883819
 
 
 
