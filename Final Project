@@ -585,17 +585,18 @@ done
 
 ## scp sp files
 
-#for i in {2..10}
+#for i in {2..6}
 #do 
 #  echo "SCP'ing pdf of k value $i"
-#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_sp_rep1K${i}_structure.plot.chain_1.pdf .
-# done
+#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_K${i}_structure.plot.chain_1.pdf .
+#done
 
-## scp sp maps
+# scp maps
+
 #for i in {2..10}
 #do 
 #  echo "SCP'ing map of k value $i"
-#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_sp_rep1K${i}_pie.map.chain_1.pdf .
+#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_K${i}_map.pdf .
 #done
 
 ###########
@@ -610,13 +611,6 @@ done
 #  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_nsp_rep1K${i}_structure.plot.chain_1.pdf .
 #done
 
-## scp nsp maps
-#for i in {2..10}
-#do 
-#  echo "SCP'ing map of k value $i"
-#  scp cgmorale@bigred200.uits.iu.edu:/N/scratch/cgmorale/Digital_biology/Final_Project/processed_lynx_nsp_rep1K${i}_pie.map.chain_1.pdf .
-#done
-
 # Cross Validation
 
 module load conda
@@ -628,55 +622,4 @@ module load r
 Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx cv
 
 echo "finished at $(date)"
-
-#DELETE BEFORE SUBMISSION
-###############
-new step r023
-###############
-nano r023_plots_and_cv_rerun.sh
-
-#!/bin/bash
-#SBATCH --account=c01988
-#SBATCH --mem=64G
-#SBATCH --time=48:00:00
-#SBATCH --job-name=rerun
-
-cd /N/scratch/cgmorale/Digital_biology/Final_Project
-mkdir -p r023_structure_rerun
-cd r023_structure_rerun
-
-module load conda
-
-conda activate /N/scratch/chriscs/Public/Week_8/Conda/envs/Db/
-
-module load r
-
-echo "converting to binary format"
-
-vcftools --vcf ../keeper_snps_r023.vcf --012 --out processed_lynx_r023
-
-echo "downloading construct.R"
-wget -O construct.R https://raw.githubusercontent.com/the-smith-lab/Digital_biology/refs/heads/main/ConStruct/construct.R
-
-## run construct.R for K-10
-
-echo "running construct.R for K-10"
-for i in {2..10}
-do 
-  echo "Running with value $i"
-  Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx_r023 $i
-done
-
-echo "running cross validation"
-Rscript construct.R /N/scratch/chriscs/Public/R_032726_BIGRED processed_lynx_r023 cv
-
-echo "finished at $(date)"
-
-# slurm 6883819
-## didn't have locs file named right, rerun 6884498
-
-
-
-
-
 
