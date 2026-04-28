@@ -19,7 +19,7 @@ module load conda
 
 chrom_map=/N/scratch/cgmorale/Digital_biology/Final_Project/chrom_map.txt
 regions=/N/scratch/cgmorale/Digital_biology/Final_Project/regions.txt
-reference_genome=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
+reference=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
 bamlist=/N/scratch/cgmorale/Digital_biology/Final_Project/final_project_bamlist.text
 
 ####################
@@ -154,7 +154,7 @@ echo "done checking read length"
 #ls -thor lynx_ref.fna
 #2.3G
 
-grep -v ">" lynx_ref.fna | tr -d '\n' | wc -c
+#grep -v ">" lynx_ref.fna | tr -d '\n' | wc -c
 #2407810255
 
 ####################
@@ -246,7 +246,7 @@ multiqc trimmed_fastqc_results/ -n multiqc_trimmed_report.html
 
 # Index the reference genome 
 
-bwa index lynx_ref.fna
+bwa index "$reference"
 
 # Calculate the expected genome-wide coverage depth from sequencing run
 ## 5 = t/(2.4x10^9) where t = n x length x 2
@@ -295,7 +295,7 @@ mkdir -p ../sam_files
 for acc in ERR7132597 ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
 do
     echo "Aligning $acc"
-    bwa mem -t 10 "$reference" "${acc}_1_subset.fastq" "${acc}_2_subset.fastq" > "$../sam_files/{acc}.sam"
+    bwa mem -t 10 "$reference" "${acc}_1_subset.fastq" "${acc}_2_subset.fastq" > "$../sam_files/${acc}.sam"
     echo "Finished ${acc}"
 done
 
@@ -308,8 +308,9 @@ echo "Finished at $(date)"
 ####################
 
 # Use samtools to count unmapped reads and read depth
+cd ../sam_files
 
-for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
+for acc in ERR7132597 ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
     do
     echo "Counting Total Reads"
     samtools view -c "${acc}.sam"
@@ -327,13 +328,11 @@ echo "Finished at $(date)"
 # Filter alignments using samtools
 
 ## move subsets into main final project folder to make easier
-cd subsets
+cd ../subsets
 
 mv *subset.fastq ../
 
-reference=/N/scratch/cgmorale/Digital_biology/Final_Project/reference_genome/ncbi_dataset/data/GCF_007474595.2/lynx_ref.fna
-
-for acc in ERR7132597 #ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
+for acc in ERR7132597 ERR7133674 ERR7133676 ERR7133682 ERR7134862 ERR7167919 ERR7167928 ERR7198583 ERR7250162 ERR7421167
 do
     echo "    bwa mem"
     bwa mem -t 1 "$reference" "${acc}_1_subset.fastq" "${acc}_2_subset.fastq" > "${acc}.sam"
@@ -416,7 +415,7 @@ bcftools mpileup --fasta-ref "$reference" \
 echo "Finished at $(date)"
 
 # NUMBER OF VARIANTS IN OUPUT VCF FILE: 
-grep -v '^#' variants.vcf | wc -l
+#grep -v '^#' variants.vcf | wc -l
 
 # 18,568,898
 # Now its 19,043,601
@@ -486,7 +485,7 @@ grep -v '^#' no_missing_sites.vcf | wc -l
 ## MAF = 1/(2X10)
 ## MAF = 0.051
 
-bcftools view -i "MAF>=$0.051" no_missing_sites.vcf -O v -o MAF_filtered_snps.vcf
+bcftools view -i 'MAF>=0.051' no_missing_sites.vcf -O v -o MAF_filtered_snps.vcf
 
 echo "Filtering done at $(date)"
 
@@ -531,10 +530,10 @@ plink --vcf snps_identified.vcf --make-bed --allow-extra-chr --out plinksnps
 ### lynx chromosomes are named unconventionally with letters. --allow-extra-chr allows for plnk to still work with them. 
 ## prune tightly linked SNPs
 
-#plink --bfile plinksnps \
-#      --allow-extra-chr \
-#      --indep-pairwise 10 1 0.23 \
-#      --out plinksnps_output
+plink --bfile plinksnps \
+      --allow-extra-chr \
+      --indep-pairwise 10 1 0.23 \
+      --out plinksnps_output
 
 ## extract keeper snps into a new file:
 echo "extracting keeper SNPS"
